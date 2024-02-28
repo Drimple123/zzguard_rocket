@@ -1,9 +1,5 @@
 package freechips.rocketchip.zzguardrr
-<<<<<<< HEAD
-
-=======
-//i am handsome
->>>>>>> 8fab796 (TEST)
+//i am handsome123
 import chisel3._
 import chisel3.util._
 
