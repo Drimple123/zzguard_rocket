@@ -4,6 +4,7 @@
 package freechips.rocketchip.tile
 
 import chisel3._
+import chisel3.util._
 import org.chipsalliance.cde.config._
 import freechips.rocketchip.devices.tilelink._
 import freechips.rocketchip.diplomacy._
@@ -17,6 +18,19 @@ import freechips.rocketchip.prci.{ClockSinkParameters}
 //===== zzguardrr: Start ====//
 import freechips.rocketchip.zzguardrr._
 //===== zzguardrr: End   ====//
+
+//===== zzguardrr: Start ====//
+class ClockDividerN(div: Int) extends BlackBox(Map("DIV" -> div)) with HasBlackBoxResource {
+  require(div > 0);
+  val io = IO(new Bundle {
+    val clk_out = Output(Clock())
+    val clk_in  = Input(Clock())
+  })
+  addResource("/vsrc/ClockDividerN.sv")
+}
+//===== zzguardrr: End   ====//
+
+
 
 case class RocketTileBoundaryBufferParams(force: Boolean = false)
 
@@ -72,6 +86,10 @@ class RocketTile private(
     connectTLSlave(beu.node, xBytes)
     beu
   }
+
+  //===== zzguardrr: Start ====//
+  val zzzzz_3 = Module(new Zzzzz_Imp)
+  //===== zzguardrr: End   ====//
 
   val tile_master_blocker =
     tileParams.blockerCtrlAddr
@@ -130,6 +148,26 @@ class RocketTileModuleImp(outer: RocketTile) extends BaseTileModuleImp(outer)
   Annotated.params(this, outer.rocketParams)
 
   val core = Module(new Rocket(outer)(outer.p))
+
+  //===== zzguardrr: Start ====//
+  val zzzzz_4 = Module(new Zzzzz_Imp)
+  val clk_div = Module(new ClockDividerN(2))
+  clk_div.io.clk_in := core.clock
+  zzzzz_4.clock := clk_div.io.clk_out
+
+  val fifo = Module(new asyncfifo(16, 32))
+  fifo.io.clk_r := clk_div.io.clk_out
+  fifo.io.wdata := core.io.ins
+  fifo.io.ren := true.B
+  when(core.io.ins(6, 0) === "b0000011".U){
+    fifo.io.wen := true.B
+  }
+  .otherwise{
+    fifo.io.wen := false.B
+  }
+
+      
+  //===== zzguardrr: End   ====//
 
   // reset vector is connected in the Frontend to s2_pc
   core.io.reset_vector := DontCare
@@ -221,6 +259,7 @@ class RocketTileModuleImp(outer: RocketTile) extends BaseTileModuleImp(outer)
   zzguard.io.din_pc     := core.io.pc
   zzguard.io.din_ins    := core.io.ins
   zzguard.io.din_wdata  := core.io.wdata
+  zzguard.io.din_mdata  := core.io.mdata
   //===== zzguardrr: End   ====//
 
 }

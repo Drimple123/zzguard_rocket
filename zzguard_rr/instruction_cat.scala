@@ -38,3 +38,30 @@ class instruction_cat extends Module{
   
 }
 
+class instruction_cat1 extends Module{
+  val io = IO(new Bundle{
+    val ins      =   Input(UInt(32.W))
+    val wdata    =   Input(UInt(64.W))
+    val mdata    =   Input(UInt(64.W))
+    val sel      =   Input(UInt(2.W))
+    val out      =   Output(UInt(160.W))
+
+    val ready   =   Input(Bool())
+    //val valid   =   Output(Bool())
+  })
+  
+  val out_w   = WireDefault(0.U(160.W))
+  val cat_w   = WireDefault(0.U(64.W))
+  val cat_m   = WireDefault(0.U(64.W))
+  val cat_wm  = WireDefault(0.U(128.W))
+
+  when(io.ready){
+    cat_w  := Mux(io.sel(1) === 1.U, io.wdata, 0.U)
+    cat_m  := Mux(io.sel(0) === 1.U, io.mdata, 0.U)
+    cat_wm := Cat(cat_w, cat_m)
+    out_w  := Cat(io.ins,cat_wm)
+  }
+
+  io.out := out_w
+}
+

@@ -8,7 +8,7 @@ class dis_fsm extends Module{
     val sel       =   Input(UInt(2.W))
     val num       =   Output(UInt(3.W))
   })
-
+  //sel=1 rr fifo0-2, sel=2 block fifo3-5  
   val rr    = Module(new fsm_rr)
   val block = Module(new fsm_block)
 

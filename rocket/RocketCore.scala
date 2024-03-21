@@ -143,6 +143,7 @@ trait HasRocketCoreIO extends HasRocketCoreParameters {
     val pc    = Output(UInt(40.W))  //wb_reg_pc
     val ins   = Output(UInt(32.W))  //wb_reg_inst
     val wdata = Output(UInt(64.W))  //wb_reg_wdata
+    val mdata = Output(UInt(64.W))  //mem_reg_wdata
     //===== zzguardrr: End   ====//
   })
 }
@@ -299,6 +300,8 @@ class Rocket(tile: RocketTile)(implicit p: Parameters) extends CoreModule()(p)
   io.pc     := wb_reg_pc
   io.ins    := wb_reg_inst
   io.wdata  := wb_reg_wdata
+  val mdata_r = RegNext(mem_reg_wdata, 0.U)
+  io.mdata  := mdata_r
   //===== zzguardrr: End   ====//
 
   val take_pc_mem_wb = take_pc_wb || take_pc_mem
