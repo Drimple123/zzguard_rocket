@@ -151,15 +151,18 @@ class RocketTileModuleImp(outer: RocketTile) extends BaseTileModuleImp(outer)
 
   //===== zzguardrr: Start ====//
   val zzzzz_4 = Module(new Zzzzz_Imp)
-  val clk_div = Module(new ClockDividerN(2))
+  val clk_div = Module(new ClockDividerN(4))
   clk_div.io.clk_in := core.clock
   zzzzz_4.clock := clk_div.io.clk_out
+  
+  val opcode = WireDefault(0.U(7.W))
+  opcode := core.io.ins(6,0)
 
   val fifo = Module(new asyncfifo(16, 32))
   fifo.io.clk_r := clk_div.io.clk_out
   fifo.io.wdata := core.io.ins
   fifo.io.ren := true.B
-  when(core.io.ins(6, 0) === "b0000011".U){
+  when((opcode === "b0000011".U || opcode === "b0100011".U || opcode === "b1100111".U || opcode === "b1101111".U) && core.io.valid){
     fifo.io.wen := true.B
   }
   .otherwise{

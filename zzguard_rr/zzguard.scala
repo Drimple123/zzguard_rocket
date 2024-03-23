@@ -80,7 +80,7 @@ class zzguardrr extends Module{
   
   //fifo的enq端接cat,valid由bitmap决定
   for(i <- 0 to 1){
-    q(i).enq.bits  := cat.io.out
+    q(i).enq.bits     := cat.io.out
     cat.io.ready      := q(i).enq.ready  //ready的接法不对，要改，感觉不能两个接一个
     when(valid_r){
       when(bitmap(i) === 1.U){
