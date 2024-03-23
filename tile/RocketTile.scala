@@ -263,6 +263,7 @@ class RocketTileModuleImp(outer: RocketTile) extends BaseTileModuleImp(outer)
   zzguard.io.din_ins    := core.io.ins
   zzguard.io.din_wdata  := core.io.wdata
   zzguard.io.din_mdata  := core.io.mdata
+  core.io.yaofull_counter  := zzguard.io.yaofull_counter
   //===== zzguardrr: End   ====//
 
 }

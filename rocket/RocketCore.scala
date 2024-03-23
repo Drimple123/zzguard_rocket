@@ -144,6 +144,9 @@ trait HasRocketCoreIO extends HasRocketCoreParameters {
     val ins   = Output(UInt(32.W))  //wb_reg_inst
     val wdata = Output(UInt(64.W))  //wb_reg_wdata
     val mdata = Output(UInt(64.W))  //mem_reg_wdata
+
+    //val full_counter = Input(Bool()) //counter的fifo满了
+    val yaofull_counter = Input(Bool())
     //===== zzguardrr: End   ====//
   })
 }
@@ -875,7 +878,8 @@ class Rocket(tile: RocketTile)(implicit p: Parameters) extends CoreModule()(p)
     id_do_fence ||
     csr.io.csr_stall ||
     id_reg_pause ||
-    io.traceStall
+    io.traceStall || io.yaofull_counter  //zzguard  counter yaofull了把cpu停住
+
   ctrl_killd := !ibuf.io.inst(0).valid || ibuf.io.inst(0).bits.replay || take_pc_mem_wb || ctrl_stalld || csr.io.interrupt
 
   io.imem.req.valid := take_pc

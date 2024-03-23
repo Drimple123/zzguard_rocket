@@ -2,6 +2,7 @@ package freechips.rocketchip.zzguardrr
 
 import chisel3._
 import chisel3.util._
+import freechips.rocketchip.tile.ClockDividerN
 
 class zzguardrr extends Module{
   val io = IO(new Bundle{
@@ -11,6 +12,8 @@ class zzguardrr extends Module{
     val din_ins     =   Input(UInt(32.W))
     val din_wdata   =   Input(UInt(64.W))
     val din_mdata   =   Input(UInt(64.W))
+    //val full_counter=   Output(Bool())
+    val yaofull_counter = Output(Bool())
   })
   
   dontTouch(io)
@@ -74,37 +77,48 @@ class zzguardrr extends Module{
 
   // }
 
-  
+  val clk_div = Module(new ClockDividerN(4))
+  clk_div.io.clk_in := clock
 
-  val q = VecInit(Seq.fill(2)(Module(new Queue(UInt(160.W),3)).io))
+  val q = VecInit(Seq.fill(2)(Module(new asyncfifo(16, 160)).io))
   
   //fifo的enq端接cat,valid由bitmap决定
   for(i <- 0 to 1){
-    q(i).enq.bits     := cat.io.out
-    cat.io.ready      := q(i).enq.ready  //ready的接法不对，要改，感觉不能两个接一个
+
+    q(i).clk_r := clk_div.io.clk_out
+
+    q(i).wdata     := cat.io.out
+    cat.io.ready   := !(q(i).full)  //ready的接法不对，要改，感觉不能两个接一个
     when(valid_r){
       when(bitmap(i) === 1.U){
-        q(i).enq.valid := true.B
+        q(i).wen := true.B
       }
       .otherwise{
-        q(i).enq.valid := false.B
+        q(i).wen := false.B
       }
     }
     .otherwise{
-      q(i).enq.valid := false.B
+      q(i).wen := false.B
     }
   }
   
+
   val ss      = Module(new shadow_stack)
   val counter = Module(new counter_sl)
 
-  q(0).deq.ready   := ss.io.ready
-  ss.io.valid         := q(0).deq.valid
-  ss.io.din           := q(0).deq.bits
+  //io.full_counter := q(1).full
+  io.yaofull_counter := q(1).yaofull
 
-  q(1).deq.ready   := counter.io.ready
-  counter.io.valid    := q(1).deq.valid
-  counter.io.din      := q(1).deq.bits
+  ss.clock := clk_div.io.clk_out
+  counter.clock := clk_div.io.clk_out
+
+  q(0).ren   := ss.io.ready
+  ss.io.valid         := !(q(0).empty)
+  ss.io.din           := q(0).rdata
+
+  q(1).ren   := counter.io.ready
+  counter.io.valid    := !(q(1).empty)
+  counter.io.din      := q(1).rdata
   
 
 

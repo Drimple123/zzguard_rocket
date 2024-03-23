@@ -186,6 +186,7 @@ class shadow_stack extends Module{
   })
   dontTouch(io)
   io.ready   := true.B
+
   val decode = Module(new mini_decode)
   decode.io.din   := io.din
   decode.io.valid := io.valid
