@@ -147,6 +147,11 @@ trait HasRocketCoreIO extends HasRocketCoreParameters {
 
     //val full_counter = Input(Bool()) //counter的fifo满了
     val yaofull_counter = Input(Bool())
+
+    //rocc指令,为了配置我的表
+    val rs1 = Output(UInt(64.W))
+    val rs2 = Output(UInt(64.W))
+
     //===== zzguardrr: End   ====//
   })
 }
@@ -305,6 +310,9 @@ class Rocket(tile: RocketTile)(implicit p: Parameters) extends CoreModule()(p)
   io.wdata  := wb_reg_wdata
   val mdata_r = RegNext(mem_reg_wdata, 0.U)
   io.mdata  := mdata_r
+
+  io.rs1 := wb_reg_wdata
+  io.rs2 := wb_reg_rs2
   //===== zzguardrr: End   ====//
 
   val take_pc_mem_wb = take_pc_wb || take_pc_mem

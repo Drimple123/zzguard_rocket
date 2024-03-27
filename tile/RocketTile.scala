@@ -264,6 +264,28 @@ class RocketTileModuleImp(outer: RocketTile) extends BaseTileModuleImp(outer)
   zzguard.io.din_wdata  := core.io.wdata
   zzguard.io.din_mdata  := core.io.mdata
   core.io.yaofull_counter  := zzguard.io.yaofull_counter
+
+  val zzguard_ram = Module(new zzguardrr_ram)
+  zzguard_ram.io.valid      := core.io.valid
+  zzguard_ram.io.din_pc     := core.io.pc
+  zzguard_ram.io.din_ins    := core.io.ins
+  zzguard_ram.io.din_wdata  := core.io.wdata
+  zzguard_ram.io.din_mdata  := core.io.mdata
+  //core.io.yaofull_counter  := zzguard_ram.io.yaofull_counter
+
+  when(core.io.ins(6,0) === "b0001011".U){
+    zzguard_ram.io.addr         := core.io.rs1
+    zzguard_ram.io.data_in      := core.io.rs2
+    zzguard_ram.io.funct        := core.io.ins(31,25)
+    zzguard_ram.io.valid_config := true.B
+  }
+  .otherwise{
+    zzguard_ram.io.addr         := 0.U
+    zzguard_ram.io.data_in      := 0.U
+    zzguard_ram.io.funct        := 0.U
+    zzguard_ram.io.valid_config := false.B
+  }
+
   //===== zzguardrr: End   ====//
 
 }
